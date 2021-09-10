@@ -1,4 +1,4 @@
-import test from 'tape-catch';
+import test from 'tape-promise/tape';
 import getPalette from '@deck.gl/carto/style/palette';
 
 const OK_TEST_CASES = [

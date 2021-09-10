@@ -1,4 +1,4 @@
-import test from 'tape-catch';
+import test from 'tape-promise/tape';
 import {testLayer} from '@deck.gl/test-utils';
 import {GeoJsonLayer} from '@deck.gl/layers';
 import * as FIXTURES from 'deck.gl-test/data';

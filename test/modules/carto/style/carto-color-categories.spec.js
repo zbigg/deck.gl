@@ -1,4 +1,4 @@
-import test from 'tape-catch';
+import test from 'tape-promise/tape';
 import {colorCategories} from '@deck.gl/carto';
 
 const CATEGORIES_TEST_CASES = [

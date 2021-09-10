@@ -1,4 +1,4 @@
-import test from 'tape-catch';
+import test from 'tape-promise/tape';
 import {colorContinuous} from '@deck.gl/carto';
 
 const CONTINUOUS_TEST_CASES = [

@@ -1,4 +1,4 @@
-import test from 'tape-catch';
+import test from 'tape-promise/tape';
 import {getDefaultCredentials, setDefaultCredentials, API_VERSIONS} from '@deck.gl/carto';
 
 test('config#default values', t => {

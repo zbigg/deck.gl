@@ -1,6 +1,6 @@
 /* global global, window */
 
-import test from 'tape-catch';
+import test from 'tape-promise/tape';
 
 import {
   _getDataV2,

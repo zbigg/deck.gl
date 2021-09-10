@@ -1,4 +1,4 @@
-import test from 'tape-catch';
+import test from 'tape-promise/tape';
 import {getAttrValue} from '@deck.gl/carto/style/utils';
 
 const DATA = {

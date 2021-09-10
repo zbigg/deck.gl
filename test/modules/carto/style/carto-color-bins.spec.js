@@ -1,4 +1,4 @@
-import test from 'tape-catch';
+import test from 'tape-promise/tape';
 import {colorBins} from '@deck.gl/carto';
 
 const OK_TEST_CASES = [

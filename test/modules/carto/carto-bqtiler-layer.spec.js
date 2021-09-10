@@ -1,4 +1,4 @@
-import test from 'tape-catch';
+import test from 'tape-promise/tape';
 import {testLayer, generateLayerTests} from '@deck.gl/test-utils';
 import {CartoBQTilerLayer} from '@deck.gl/carto';
 import {mockFetchMapsV2, restoreFetch} from './mock-fetch';
