@@ -42,9 +42,7 @@ export function setDefaultCredentials(opts) {
     case API_VERSIONS.V3:
       if (!opts.apiBaseUrl) {
         throw new Error(
-          `API version ${
-            API_VERSIONS.V3
-          } requires to define apiBaseUrl at credentials. Go to https://app.carto.com to get your apiBaseUrl.`
+          `API version ${API_VERSIONS.V3} requires to define apiBaseUrl at credentials. Go to https://app.carto.com to get your apiBaseUrl.`
         );
       }
 

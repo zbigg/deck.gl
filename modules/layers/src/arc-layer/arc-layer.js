@@ -125,14 +125,8 @@ export default class ArcLayer extends Layer {
 
   draw({uniforms}) {
     const {viewport} = this.context;
-    const {
-      widthUnits,
-      widthScale,
-      widthMinPixels,
-      widthMaxPixels,
-      greatCircle,
-      wrapLongitude
-    } = this.props;
+    const {widthUnits, widthScale, widthMinPixels, widthMaxPixels, greatCircle, wrapLongitude} =
+      this.props;
 
     const widthMultiplier = widthUnits === 'pixels' ? viewport.metersPerPixel : 1;
 

@@ -6,13 +6,15 @@ module.exports = api => {
 
   config = deepMerge(config, {
     plugins: [
-      'version-inline', 'inline-webgl-constants', [
-      'remove-glsl-comments',
-      {
-        patterns: ['**/*.glsl.js']
-      }
+      'version-inline',
+      'inline-webgl-constants',
+      [
+        'remove-glsl-comments',
+        {
+          patterns: ['**/*.glsl.js']
+        }
+      ]
     ]
-  ]
   });
 
   return config;

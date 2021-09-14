@@ -95,14 +95,8 @@ export default class TextBackgroundLayer extends Layer {
 
   draw({uniforms}) {
     const {viewport} = this.context;
-    const {
-      billboard,
-      sizeScale,
-      sizeUnits,
-      sizeMinPixels,
-      sizeMaxPixels,
-      getLineWidth
-    } = this.props;
+    const {billboard, sizeScale, sizeUnits, sizeMinPixels, sizeMaxPixels, getLineWidth} =
+      this.props;
     let {padding} = this.props;
 
     const sizeScaleMultiplier = sizeUnits === 'pixels' ? viewport.metersPerPixel : 1;

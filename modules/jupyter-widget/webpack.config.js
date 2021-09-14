@@ -1,6 +1,6 @@
 const {resolve} = require('path');
 const webpack = require('webpack');
-const {getOcularConfig} = require('ocular-dev-tools')
+const {getOcularConfig} = require('ocular-dev-tools');
 
 const ALIASES = getOcularConfig({
   aliasMode: 'src',

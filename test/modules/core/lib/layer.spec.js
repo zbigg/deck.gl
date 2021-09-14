@@ -62,7 +62,14 @@ const LAYER_CONSTRUCT_TEST_CASES = [
   },
   {
     title: 'With data map',
-    props: {id: 'testLayer', data: new Map([['a', 'a'], ['b', 'b'], ['c', 'c']])}
+    props: {
+      id: 'testLayer',
+      data: new Map([
+        ['a', 'a'],
+        ['b', 'b'],
+        ['c', 'c']
+      ])
+    }
   }
 ];
 
@@ -304,11 +311,10 @@ test('Layer#project', t => {
   });
 
   t.ok(
-    equals(layer.project([100, 100, 100]), [
-      215.91962780165122,
-      134.08037212774843,
-      0.9981698636949582
-    ]),
+    equals(
+      layer.project([100, 100, 100]),
+      [215.91962780165122, 134.08037212774843, 0.9981698636949582]
+    ),
     'returns correct value'
   );
 
@@ -324,11 +330,10 @@ test('Layer#project', t => {
   });
 
   t.ok(
-    equals(layer.project([100, 100, 100]), [
-      77.35308047269142,
-      60.21622351419864,
-      0.8327158213685135
-    ]),
+    equals(
+      layer.project([100, 100, 100]),
+      [77.35308047269142, 60.21622351419864, 0.8327158213685135]
+    ),
     'returns correct value'
   );
 
