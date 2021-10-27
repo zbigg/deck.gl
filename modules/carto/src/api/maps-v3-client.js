@@ -3,7 +3,7 @@
  */
 import {getDefaultCredentials, buildMapsUrlFromBase} from '../config';
 import {API_VERSIONS, encodeParameter, FORMATS, MAP_TYPES} from './maps-api-common';
-import {getMapDatasets, parseMap} from './parseMap';
+import {parseMap} from './parseMap';
 import {log} from '@deck.gl/core';
 
 const MAX_GET_LENGTH = 2048;
@@ -125,6 +125,21 @@ function getUrlFromMetadata(metadata, format) {
 }
 
 export async function getData({type, source, connection, credentials, geoColumn, columns, format}) {
+  // Internally we split data fetching into two parts to allow us to
+  // conditionally fetch the actual data, depending on the metadata state
+  const {url, mapFormat, accessToken} = await _getDataUrl({
+    type,
+    source,
+    connection,
+    credentials,
+    geoColumn,
+    columns,
+    format
+  });
+  return await request({url, format: mapFormat, accessToken});
+}
+
+async function _getDataUrl({type, source, connection, credentials, geoColumn, columns, format}) {
   const localCreds = {...getDefaultCredentials(), ...credentials};
 
   log.assert(connection, 'Must define connection');
@@ -168,8 +183,30 @@ export async function getData({type, source, connection, credentials, geoColumn,
   }
 
   const {accessToken} = localCreds;
+  return {url, mapFormat, accessToken};
+}
 
-  return await request({url, format: mapFormat, accessToken});
+async function getMapDataset(datasets, accessToken) {
+  // First fetch metadata for each dataset
+  const metadataRequests = datasets.map(dataset => {
+    const {connectionName: connection, source, type} = dataset;
+    return _getDataUrl({
+      credentials: {accessToken},
+      connection,
+      source,
+      type
+    });
+  });
+  const metadata = await Promise.all(metadataRequests);
+
+  const dataRequests = metadata.map(({mapFormat: format, ...rest}) => {
+    return request({format, ...rest});
+  });
+  const fetchedDatasets = await Promise.all(dataRequests);
+
+  datasets.forEach((dataset, index) => {
+    dataset.data = fetchedDatasets[index];
+  });
 }
 
 export async function getMap({id, credentials}) {
@@ -187,7 +224,7 @@ export async function getMap({id, credentials}) {
   const map = await request({url});
 
   // Mutates map.datasets so that dataset.data contains data
-  await getMapDatasets(map);
+  await getMapDataset(map.datasets, map.publicToken);
 
   return parseMap(map);
 }
