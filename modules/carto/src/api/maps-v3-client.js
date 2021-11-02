@@ -68,7 +68,7 @@ function dealWithError({response, error}) {
 /**
  * Build a URL with all required parameters
  */
-function getParameters({type, source, geoColumn, columns}) {
+function getParameters({type, source, geoColumn, columns, schema}) {
   const encodedClient = encodeParameter('client', 'deck-gl-carto');
   const parameters = [encodedClient];
 
@@ -83,6 +83,9 @@ function getParameters({type, source, geoColumn, columns}) {
       parameters.push(encodeParameter('columns', columns.join(',')));
     }
   }
+  if (schema) {
+    parameters.push('schema=true')
+  }
 
   return parameters.join('&');
 }
@@ -93,10 +96,11 @@ export async function mapInstantiation({
   connection,
   credentials,
   geoColumn,
-  columns
+  columns,
+  schema
 }) {
   const baseUrl = `${credentials.mapsUrl}/${connection}/${type}`;
-  const url = `${baseUrl}?${getParameters({type, source, geoColumn, columns})}`;
+  const url = `${baseUrl}?${getParameters({type, source, geoColumn, columns, schema})}`;
   const {accessToken} = credentials;
 
   const format = 'json';
@@ -123,7 +127,7 @@ function getUrlFromMetadata(metadata, format) {
   return null;
 }
 
-export async function getData({type, source, connection, credentials, geoColumn, columns, format}) {
+export async function getData({type, source, connection, credentials, geoColumn, columns, format, schema}) {
   const localCreds = {...getDefaultCredentials(), ...credentials};
 
   log.assert(connection, 'Must define connection');
@@ -145,7 +149,8 @@ export async function getData({type, source, connection, credentials, geoColumn,
     connection,
     credentials: localCreds,
     geoColumn,
-    columns
+    columns,
+    schema
   });
   let url;
   let mapFormat;
@@ -168,5 +173,13 @@ export async function getData({type, source, connection, credentials, geoColumn,
 
   const {accessToken} = localCreds;
 
-  return await request({url, format: mapFormat, accessToken});
+  const data = await request({url, format: mapFormat, accessToken});
+  const result = {
+    data,
+    format
+  }
+  if (schema) {
+    result.schema = metadata.schema;
+  }
+  return format
 }
