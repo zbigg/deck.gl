@@ -97,7 +97,7 @@ export type LayerProps<DataType = any> = {
   /**
    * A 4x4 matrix to transform local coordianates to the world space.
    */
-  modelMatrix?: NumericArray;
+  modelMatrix?: NumericArray | undefined;
   /**
    * (Geospatial only) normalize geometries that cross the 180th meridian. Default false.
    */

@@ -17,7 +17,7 @@ export type ComponentProps = {
   id: string;
 };
 
-export type StatefulComponentProps<PropsT extends ComponentProps> = PropsT & {
+export type StatefulComponentProps<PropsT extends ComponentProps> = Required<PropsT> & {
   [COMPONENT_SYMBOL]: Component<PropsT>;
   [ASYNC_DEFAULTS_SYMBOL]: Partial<PropsT>;
   [ASYNC_ORIGINAL_SYMBOL]: Partial<PropsT>;

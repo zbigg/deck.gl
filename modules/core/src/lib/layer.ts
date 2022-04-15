@@ -50,6 +50,7 @@ import type {PickingInfo} from './picking/pick-info';
 import type Viewport from '../viewports/viewport';
 import type {NumericArray} from '../types/types';
 import type {LayerContext} from './layer-manager';
+import {PropTypeDef} from '../lifecycle/prop-types';
 
 const TRACE_CHANGE_FLAG = 'layer.changeFlag';
 const TRACE_INITIALIZE = 'layer.initialize';
@@ -70,7 +71,12 @@ const areViewportsEqual = memoize(
 
 let pickingColorCache = new Uint8ClampedArray(0);
 
-const defaultProps = {
+type LayerPropDefinitions<PropsT extends LayerProps = LayerProps, ParentProps = {}> = Record<
+  keyof Omit<PropsT, 'id' | keyof ParentProps>,
+  PropTypeDef
+>;
+
+const defaultProps: LayerPropDefinitions<LayerProps> = {
   // data: Special handling for null, see below
   data: {type: 'data', value: EMPTY_ARRAY, async: true},
   dataComparator: {type: 'function', value: null, compare: false, optional: true},
@@ -151,7 +157,10 @@ const defaultProps = {
   // Selection/Highlighting
   highlightedObjectIndex: null,
   autoHighlight: false,
-  highlightColor: {type: 'accessor', value: [0, 0, 128, 128]}
+  highlightColor: {type: 'accessor', value: [0, 0, 128, 128]},
+  loadOptions: {type: 'object', optional: true, value: undefined},
+  numInstances: {type: 'number', optional: true, value: 0}, // no way to encode
+  startIndices: {type: 'array', optional: true, value: null}
 };
 
 export default abstract class Layer<
@@ -169,6 +178,9 @@ export default abstract class Layer<
 
   /** Projects a point with current view state from the current layer's coordinate system to screen */
   project(xyz: number[]): number[] {
+    const a = this.props.modelMatrix.length;
+    const b = this.props.fetch();
+    const c = this.props.operation;
     const viewport = this.internalState?.viewport || (this.context?.viewport as Viewport);
 
     const worldPosition = getWorldPosition(xyz, {
