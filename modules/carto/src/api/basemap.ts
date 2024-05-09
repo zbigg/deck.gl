@@ -35,7 +35,7 @@ export type MaplibreBasemapProps = {
   visibleLayerGroups?: Record<string, boolean>;
 
   /** If `style` has been filtered by `visibleLayerGroups` then this property contains original style object, so user
-   * can use `applyLayerGroupFilters` again with new settings.
+   * can use `applyLayerGroupFilters` to customize filters.
    */
   rawStyle?: string | Record<string, any>;
 
