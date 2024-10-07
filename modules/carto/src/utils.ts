@@ -34,6 +34,45 @@ export function createBinaryProxy(
   });
 }
 
+export function createMutableBinaryProxy() {
+  let numericProps: NumericProps = {} as any;
+  let properties: Properties[] = [];
+  let index = 0;
+  return {
+    proxy: new Proxy({}, {
+      get(target, property) {
+        if (property in numericProps) {
+          return numericProps[property as string].value[index];
+        }
+        return target[property as string];
+      },
+
+      has(target, property) {
+        return property in numericProps || property in target;
+      },
+
+      ownKeys(target) {
+        return [...Object.keys(numericProps), ...Reflect.ownKeys(target)];
+      },
+
+      getOwnPropertyDescriptor(target, prop) {
+        return {enumerable: true, configurable: true};
+      }
+    }),
+    bind: (
+      data: {
+        numericProps: NumericProps;
+        properties: Properties[];
+      },
+      newIndex: number
+    ) => {
+      index = newIndex;
+      numericProps = data.numericProps;
+      properties = data.properties;
+    }
+  };
+}
+
 export function getWorkerUrl(id: string, version: string) {
   // For local testing `yarn build-workers` and then host `modules/carto/dist/`
   // return `http://localhost:8081/dist/${id}-worker.js`;

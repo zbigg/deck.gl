@@ -11,7 +11,7 @@ import {ColumnLayer, ColumnLayerProps} from '@deck.gl/layers';
 import {quadbinToOffset} from './quadbin-utils';
 import {Raster} from './schema/carto-raster-tile-loader';
 import vs from './raster-layer-vertex.glsl';
-import {createBinaryProxy} from '../utils';
+import {createBinaryProxy, createMutableBinaryProxy} from '../utils';
 
 const defaultProps: DefaultProps<RasterLayerProps> = {
   ...ColumnLayer.defaultProps,
@@ -137,13 +137,30 @@ export default class RasterLayer<DataT = any, ExtraProps = {}> extends Composite
       return super.getSubLayerAccessor(accessor);
     }
 
+    if ((this.props as any)._experimentalBinaryAccessor) {
+      const {proxy: proxy2, bind} = createMutableBinaryProxy();
+      const tmpFeature = {properties: {}, index: 0, data: {}};
+      // Proxy values back in standard feature format
+      return (object, info) => {
+        const {data, index} = info;
+        const binaryData = (data as unknown as {data: Raster}).data;
+        bind(binaryData.cells, index);
+        tmpFeature.properties = proxy2;
+        tmpFeature.index = index;
+        tmpFeature.data = binaryData.cells;
+
+        // @ts-ignore (TS2349) accessor is always function
+        return accessor(tmpFeature, info);
+      };
+    }
+
     // Proxy values back in standard feature format
     return (object, info) => {
       const {data, index} = info;
       const binaryData = (data as unknown as {data: Raster}).data;
       const proxy = createBinaryProxy(binaryData.cells, index);
       // @ts-ignore (TS2349) accessor is always function
-      return accessor({properties: proxy}, info);
+      return accessor({properties: proxy, index, data: binaryData.cells}, info);
     };
   }
 

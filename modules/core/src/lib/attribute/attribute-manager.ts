@@ -391,6 +391,7 @@ export default class AttributeManager {
   }) {
     const {attribute, numInstances} = opts;
     debug(TRACE_ATTRIBUTE_UPDATE_START, attribute);
+    console.time(`updateAttribute#${attribute.id}`);
 
     if (attribute.constant) {
       // The attribute is flagged as constant outside of an update cycle
@@ -410,5 +411,6 @@ export default class AttributeManager {
       this.needsRedraw = true;
       debug(TRACE_ATTRIBUTE_UPDATE_END, attribute, numInstances);
     }
+    console.timeEnd(`updateAttribute#${attribute.id}`);
   }
 }
