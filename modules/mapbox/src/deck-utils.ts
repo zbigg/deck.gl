@@ -17,6 +17,7 @@ type UserData = {
   currentViewport?: Viewport | null;
   mapboxLayers: Set<MapboxLayer<any>>;
   // mapboxVersion: {minor: number; major: number};
+  layerGroupStatus: Record<string, boolean>;
 };
 
 // Mercator constants
@@ -95,7 +96,9 @@ export function getDeckInstance({
   // (deckInstance.userData as UserData).mapboxVersion = getMapboxVersion(map);
   map.__deck = deckInstance;
   map.on('render', () => {
+    console.log('deck-utils#map:afterRender');
     if (deckInstance.isInitialized) afterRender(deckInstance, map);
+    (deckInstance.userData as UserData).layerGroupStatus = {};
   });
 
   return deckInstance;
@@ -174,11 +177,37 @@ export function drawLayer(
     return;
   }
 
+  const layerGroupId = layer.props.beforeId;
+  const userData = deck.userData as UserData;
+  if (userData.layerGroupStatus && userData.layerGroupStatus[layerGroupId]) {
+    console.log('deck-utils#drawLayer', layer.id, layerGroupId, 'skipped');
+    return;
+  }
+  if (!userData.layerGroupStatus) {
+    userData.layerGroupStatus = {};
+  }
+  userData.layerGroupStatus[layerGroupId] = true;
+
+  console.log('deck-utils#drawLayer', layer.id, layerGroupId, 'rendering layer group');
   deck._drawLayers('mapbox-repaint', {
     viewports: [currentViewport],
-    layerFilter: params =>
-      (!deck.props.layerFilter || deck.props.layerFilter(params)) &&
-      (layer.id === params.layer.id || params.layer.props.operation.includes('terrain')),
+    layerFilter: params => {
+      if (deck.props.layerFilter && !deck.props.layerFilter(params)) {
+        return false;
+      }
+      // beforeId is not typed in the LayerProps interface
+      if ((params.layer.props as any).beforeId === layerGroupId) {
+        return true;
+      }
+      if (layer.id === params.layer.id) {
+        return true;
+      }
+
+      if (params.layer.props.operation.includes('terrain')) {
+        return true;
+      }
+      return false;
+    },
     clearStack,
     clearCanvas: false
   });
