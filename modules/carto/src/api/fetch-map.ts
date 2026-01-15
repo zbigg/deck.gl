@@ -38,7 +38,7 @@ export function LayerFactory(descriptor: LayerDescriptor): Layer {
   if (!LayerClass) {
     throw new Error(`No layer class found for type: ${descriptor.type}`);
   }
-  return new LayerClass(descriptor.props);
+  return new LayerClass({...descriptor.props, beforeId: 'watername_ocean'});
 }
 
 function createResult(result: _FetchMapResult): FetchMapResult {

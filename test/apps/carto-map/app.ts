@@ -11,6 +11,7 @@ import {
 } from '@deck.gl/carto';
 import {Deck} from '@deck.gl/core';
 import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import {Loader} from '@googlemaps/js-api-loader';
 
@@ -56,7 +57,7 @@ async function createMapWithMapboxOverlay(result: FetchMapResult) {
   document.getElementById('deck-canvas')!.style.display = 'none';
 
   const basemap = result.basemap as MapLibreBasemap;
-  const map = new mapboxgl.Map({
+  const map = new maplibregl.Map({
     container: 'map',
     ...basemap?.props,
     style: basemap?.props.style || BASEMAP.POSITRON,
@@ -68,8 +69,9 @@ async function createMapWithMapboxOverlay(result: FetchMapResult) {
     })
   );
 
-  const overlay = new MapboxOverlay({layers: result.layers});
+  const overlay = new MapboxOverlay({interleaved: true});
   map.addControl(overlay);
+  overlay.setProps({layers: result.layers});
 
   return overlay;
 }
@@ -120,6 +122,9 @@ async function createMap(cartoMapId: string) {
 
 // Helper UI for dev
 const examples = [
+  //
+  '98636443-7893-4bb3-a1dd-5a037e2b6ac5', // overlay text bug,
+  '83fa3484-abf0-43cb-8dbd-6091bd69c62d', // overlay text bug #2,
   // These CARTO maps should live in the "Public" org (ac_lqe3zwgu) using the carto_dw, public_snowflake or public_redshift connection
 
   // Vector
