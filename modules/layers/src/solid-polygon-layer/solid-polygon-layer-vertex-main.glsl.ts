@@ -43,14 +43,18 @@ void calculatePosition(PolygonProps props) {
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
 
   if (solidPolygon.extruded) {
-  #ifdef IS_SIDE_VERTEX
-    normal = project_offset_normal(normal);
+  #ifdef UNLIT
+    vColor = vec4(colors.rgb, colors.a * layer.opacity);
   #else
+    #ifdef IS_SIDE_VERTEX
+    normal = project_offset_normal(normal);
+    #else
     normal = project_normal(normal);
-  #endif
+    #endif
     geometry.normal = normal;
     vec3 lightColor = lighting_getLightColor(colors.rgb, project.cameraPosition, geometry.position.xyz, geometry.normal);
     vColor = vec4(lightColor, colors.a * layer.opacity);
+  #endif
   } else {
     vColor = vec4(colors.rgb, colors.a * layer.opacity);
   }

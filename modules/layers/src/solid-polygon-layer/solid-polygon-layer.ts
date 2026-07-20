@@ -86,6 +86,14 @@ type _SolidPolygonLayerProps<DataT> = {
    * @see https://deck.gl/docs/developer-guide/using-lighting
    */
   material?: Material;
+
+  /**
+   * If `false`, the top faces are rendered with their flat fill color, unaffected by lighting;
+   * the side walls remain lit. Useful when the top should show exact data-driven colors
+   * (e.g. matching a legend). Only applies if `extruded: true`.
+   * @default true
+   */
+  lightTop?: boolean;
 };
 
 /** Render filled and/or extruded polygons. */
@@ -108,7 +116,8 @@ const defaultProps: DefaultProps<SolidPolygonLayerProps> = {
   getFillColor: {type: 'accessor', value: DEFAULT_COLOR},
   getLineColor: {type: 'accessor', value: DEFAULT_COLOR},
 
-  material: true
+  material: true,
+  lightTop: true
 };
 
 const ATTRIBUTE_TRANSITION = {
@@ -133,13 +142,16 @@ export default class SolidPolygonLayer<DataT = any, ExtraPropsT extends {} = {}>
   };
 
   getShaders(type) {
+    // The top face is its own model, so unlit tops link no lighting code at all.
+    const unlit = type === 'top' && !this.props.lightTop;
     return super.getShaders({
       vs: type === 'top' ? vsTop : vsSide,
       fs,
       defines: {
-        RING_WINDING_ORDER_CW: !this.props._normalize && this.props._windingOrder === 'CCW' ? 0 : 1
+        RING_WINDING_ORDER_CW: !this.props._normalize && this.props._windingOrder === 'CCW' ? 0 : 1,
+        ...(unlit ? {UNLIT: 1} : {})
       },
-      modules: [project32, gouraudMaterial, picking, solidPolygonUniforms]
+      modules: [project32, ...(unlit ? [] : [gouraudMaterial]), picking, solidPolygonUniforms]
     });
   }
 
@@ -319,7 +331,8 @@ export default class SolidPolygonLayer<DataT = any, ExtraPropsT extends {} = {}>
     const regenerateModels =
       changeFlags.extensionsChanged ||
       props.filled !== oldProps.filled ||
-      props.extruded !== oldProps.extruded;
+      props.extruded !== oldProps.extruded ||
+      props.lightTop !== oldProps.lightTop;
 
     if (regenerateModels) {
       this.state.models?.forEach(model => model.destroy());
