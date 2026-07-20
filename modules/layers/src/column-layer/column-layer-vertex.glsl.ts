@@ -21,6 +21,7 @@ out vec4 vColor;
 #ifdef FLAT_SHADING
 out vec3 cameraPosition;
 out vec4 position_commonspace;
+out float vIsTop;
 #endif
 
 void main(void) {
@@ -73,7 +74,12 @@ void main(void) {
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
 
   // Light calculations
-  if (column.extruded && !column.isStroke) {
+  // Top-cap vertices carry normal (0,0,1); side vertices carry (cos,sin,0).
+  bool isTop = normals.z > 0.5;
+#ifdef FLAT_SHADING
+  vIsTop = float(isTop);
+#endif
+  if (column.extruded && !column.isStroke && !(isTop && !column.lightTop)) {
 #ifdef FLAT_SHADING
     cameraPosition = project.cameraPosition;
     position_commonspace = geometry.position;

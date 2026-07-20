@@ -48,6 +48,7 @@ const defaultProps: DefaultProps<ColumnLayerProps> = {
   filled: true,
   stroked: false,
   flatShading: false,
+  lightTop: true,
 
   getPosition: {type: 'accessor', value: (x: any) => x.position},
   getFillColor: {type: 'accessor', value: DEFAULT_COLOR},
@@ -135,6 +136,14 @@ type _ColumnLayerProps<DataT> = {
    * @default false
    */
   flatShading?: boolean;
+
+  /**
+   * If `false`, the top face of each column is rendered with its flat fill color, unaffected
+   * by lighting; the side walls remain lit. Useful when the top should show exact data-driven
+   * colors (e.g. matching a legend). Only applies if `extruded: true`.
+   * @default true
+   */
+  lightTop?: boolean;
 
   /**
    * The units of the radius.
@@ -401,7 +410,8 @@ export default class ColumnLayer<DataT = any, ExtraPropsT extends {} = {}> exten
       offset,
       coverage,
       radius,
-      angle
+      angle,
+      lightTop
     } = this.props;
     const fillModel = this.state.fillModel!;
     const wireframeModel = this.state.wireframeModel!;
@@ -413,6 +423,7 @@ export default class ColumnLayer<DataT = any, ExtraPropsT extends {} = {}> exten
       offset,
       extruded,
       stroked,
+      lightTop,
       coverage,
       elevationScale,
       edgeDistance,

@@ -37,7 +37,8 @@ export default class GridCellLayer<DataT = any, ExtraPropsT extends {} = {}> ext
   }
 
   draw({uniforms}) {
-    const {elevationScale, extruded, offset, coverage, cellSize, angle, radiusUnits} = this.props;
+    const {elevationScale, extruded, offset, coverage, cellSize, angle, radiusUnits, lightTop} =
+      this.props;
     const fillModel = this.state.fillModel!;
     const columnProps: ColumnProps = {
       radius: cellSize / 2,
@@ -46,6 +47,7 @@ export default class GridCellLayer<DataT = any, ExtraPropsT extends {} = {}> ext
       offset,
       extruded,
       stroked: false,
+      lightTop,
       coverage,
       elevationScale,
       edgeDistance: 1,

@@ -13,6 +13,7 @@ in vec4 vColor;
 #ifdef FLAT_SHADING
 in vec3 cameraPosition;
 in vec4 position_commonspace;
+in float vIsTop;
 #endif
 
 void main(void) {
@@ -20,7 +21,7 @@ void main(void) {
   // Fails to compile on some Android devices if geometry is never assigned (#8411)
   geometry.uv = vec2(0.);
 #ifdef FLAT_SHADING
-  if (column.extruded && !column.isStroke && !bool(picking.isActive)) {
+  if (column.extruded && !column.isStroke && !bool(picking.isActive) && !(vIsTop > 0.5 && !column.lightTop)) {
     vec3 normal = normalize(cross(dFdx(position_commonspace.xyz), dFdy(position_commonspace.xyz)));
     fragColor.rgb = lighting_getLightColor(vColor.rgb, cameraPosition, position_commonspace.xyz, normal);
   }
