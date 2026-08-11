@@ -4,7 +4,7 @@
 
 import {LayerExtension} from '@deck.gl/core';
 
-import {FillStyleModuleProps, patternShaders} from './shader-module';
+import {FILL_UV_SCALE, FillStyleModuleProps, patternShaders} from './shader-module';
 
 import type {
   Layer,
@@ -79,6 +79,31 @@ export type FillStyleExtensionOptions = {
    */
   pattern: boolean;
 };
+
+/**
+ * Size of one pattern repeat in common space, or `null` if instances can disagree on it.
+ *
+ * The shader derives the repeat per instance, from the `fillPatternScales` attribute times the
+ * frame size, while the projection origin is a uniform. So the origin can only be reduced
+ * against a repeat that every instance shares: a constant `getFillPatternScale` over frames
+ * that are all the same size.
+ */
+function getUniformPatternCell(props: FillStyleExtensionProps): [number, number] | null {
+  const {getFillPatternScale: scale, fillPatternMapping: mapping} = props;
+  if (typeof scale !== 'number' || !mapping || typeof mapping !== 'object') {
+    return null;
+  }
+  const frames = Object.values(mapping);
+  const [first] = frames;
+  if (!first || frames.some(f => f.width !== first.width || f.height !== first.height)) {
+    return null;
+  }
+  const cell: [number, number] = [
+    FILL_UV_SCALE * scale * first.width,
+    FILL_UV_SCALE * scale * first.height
+  ];
+  return cell[0] > 0 && cell[1] > 0 ? cell : null;
+}
 
 /** Adds selected features to layers that render a "fill", such as the `PolygonLayer` and `ScatterplotLayer`. */
 export default class FillStyleExtension extends LayerExtension<FillStyleExtensionOptions> {
@@ -164,7 +189,8 @@ export default class FillStyleExtension extends LayerExtension<FillStyleExtensio
       project: params.shaderModuleProps.project,
       fillPatternEnabled,
       fillPatternMask,
-      fillPatternTexture: (fillPatternAtlas || this.state.emptyTexture) as Texture
+      fillPatternTexture: (fillPatternAtlas || this.state.emptyTexture) as Texture,
+      fillPatternCell: getUniformPatternCell(this.props)
     };
     this.setShaderModuleProps({fill: fillProps});
   }

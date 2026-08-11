@@ -88,11 +88,19 @@ const inject = {
   `
 };
 
+/** Meters to common space. Mirrors FILL_UV_SCALE in the fragment shader above. */
+export const FILL_UV_SCALE = 512 / 40000000;
+
 export type FillStyleModuleProps = {
   project: ProjectProps;
   fillPatternEnabled?: boolean;
   fillPatternMask?: boolean;
   fillPatternTexture: Texture;
+  /**
+   * Size of one pattern repeat in common space, when every instance in the draw call shares it.
+   * Lets the pattern origin be reduced on the CPU - see `getPatternUniforms`.
+   */
+  fillPatternCell?: [number, number] | null;
 };
 
 type FillStyleModuleUniforms = {
@@ -106,6 +114,11 @@ type FillStyleModuleUniforms = {
 type FillStyleModuleBindings = {
   fill_patternTexture?: Texture;
 };
+
+/** Floored remainder, matching GLSL `mod()`. JS `%` truncates toward zero. */
+function modFloor(x: number, y: number): number {
+  return x - y * Math.floor(x / y);
+}
 
 /* eslint-disable camelcase */
 function getPatternUniforms(
@@ -121,17 +134,30 @@ function getPatternUniforms(
     uniforms.patternTextureSize = [fillPatternTexture.width, fillPatternTexture.height];
   }
   if ('project' in opts) {
-    const {fillPatternMask = true, fillPatternEnabled = true} = opts;
+    const {fillPatternMask = true, fillPatternEnabled = true, fillPatternCell = null} = opts;
     const projectUniforms = project.getUniforms(opts.project) as ProjectUniforms;
-    const {commonOrigin: coordinateOriginCommon} = projectUniforms;
+    const {commonOrigin} = projectUniforms;
 
-    const coordinateOriginCommon64Low: [number, number] = [
+    // `commonOrigin` spans the whole of common space (up to 512), while one pattern repeat is
+    // on the order of 1e-5 common units when zoomed in. Reducing one against the other in the
+    // shader loses the low bits of `scale * floor(origin / scale)`, which is a few screen
+    // pixels of pattern phase past zoom 16 and doubles with every zoom level after that.
+    //
+    // Subtracting whole repeats does not change the phase, so when every instance shares a
+    // repeat we can subtract them here instead, in fp64. The shader then receives a value
+    // below one repeat, where its own `mod()` returns the value untouched.
+    const coordinateOriginCommon: [number, number] = fillPatternCell
+      ? [
+          modFloor(commonOrigin[0], fillPatternCell[0]),
+          modFloor(commonOrigin[1], fillPatternCell[1])
+        ]
+      : [commonOrigin[0], commonOrigin[1]];
+
+    uniforms.uvCoordinateOrigin = coordinateOriginCommon;
+    uniforms.uvCoordinateOrigin64Low = [
       fp64LowPart(coordinateOriginCommon[0]),
       fp64LowPart(coordinateOriginCommon[1])
     ];
-
-    uniforms.uvCoordinateOrigin = coordinateOriginCommon.slice(0, 2) as [number, number];
-    uniforms.uvCoordinateOrigin64Low = coordinateOriginCommon64Low;
     uniforms.patternMask = fillPatternMask;
     uniforms.patternEnabled = fillPatternEnabled;
   }
