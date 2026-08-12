@@ -72,7 +72,14 @@ const inject = {
 
       vec2 texCoords = fill_patternBounds.xy + fill_patternBounds.zw * patternUV;
 
-      vec4 patternColor = texture(fill_patternTexture, texCoords);
+      // The atlas cannot use REPEAT wrapping, so the repeat is emulated with mod() above.
+      // That makes texCoords discontinuous at every repeat boundary, and an implicit LOD
+      // reads those jumps as an enormous derivative and picks the coarsest mip - a seam.
+      // Take the gradients from the continuous coordinate instead.
+      vec2 gradX = fill_patternBounds.zw * (dFdx(fill_uv) / scale);
+      vec2 gradY = fill_patternBounds.zw * (dFdy(fill_uv) / scale);
+
+      vec4 patternColor = textureGrad(fill_patternTexture, texCoords, gradX, gradY);
       color.a *= patternColor.a;
       if (!fill.patternMask) {
         color.rgb = patternColor.rgb;
